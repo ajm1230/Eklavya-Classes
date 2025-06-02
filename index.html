@@ -1,0 +1,179 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eklavya Classes App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+  <style>
+    canvas {
+      max-width: 100%;
+      height: auto;
+    }
+    .active-tab {
+      border-bottom: 3px solid #3b82f6;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <!-- Tabs -->
+  <div class="flex justify-around text-lg font-semibold bg-white shadow fixed top-0 w-full z-10">
+    <button onclick="switchTab('questions')" id="tab-questions" class="py-4 w-full active-tab">Questions</button>
+    <button onclick="switchTab('tests')" id="tab-tests" class="py-4 w-full">Tests</button>
+    <button onclick="switchTab('results')" id="tab-results" class="py-4 w-full">Results</button>
+  </div>  <!-- Sections -->  <div class="pt-20 p-4">
+    <div id="questions" class="tab-section"></div>
+    <div id="tests" class="tab-section hidden"></div>
+    <div id="results" class="tab-section hidden"></div>
+  </div>  <!-- Floating Add Button -->  <button onclick="toggleForm()" class="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:scale-110 transition">
+    <i class="fas fa-plus"></i>
+  </button>  <!-- Form Popup -->  <div id="formPopup" class="fixed inset-0 bg-black bg-opacity-40 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-xl w-full max-w-md">
+      <h2 class="text-xl font-bold mb-4">Add Content</h2>
+      <input id="fileTitle" type="text" placeholder="Title" class="w-full p-2 border mb-2 rounded">
+      <input id="fileInput" type="file" accept="image/*,video/*,application/pdf" class="w-full p-2 border mb-2 rounded">
+      <select id="sectionSelect" class="w-full p-2 border mb-4 rounded">
+        <option value="questions">Questions</option>
+        <option value="tests">Tests</option>
+        <option value="results">Results</option>
+      </select>
+      <div class="flex justify-end gap-4">
+        <button onclick="toggleForm()" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+        <button onclick="submitForm()" class="bg-blue-500 text-white px-4 py-2 rounded">Submit</button>
+      </div>
+    </div>
+  </div>  <!-- Fullscreen Preview -->  <div id="previewPopup" class="fixed inset-0 bg-white z-50 hidden flex flex-col items-center p-4">
+    <button onclick="closePreview()" class="self-end text-2xl mb-4"><i class="fas fa-times"></i></button>
+    <div id="previewContent" class="w-full max-w-3xl flex flex-col items-center"></div>
+    <div id="pdfNavigation" class="mt-2 hidden w-full max-w-3xl flex justify-between">
+      <button onclick="navigatePDF(-1)" class="text-xl"><i class="fas fa-arrow-left"></i></button>
+      <span id="pageInfo">Page 1</span>
+      <button onclick="navigatePDF(1)" class="text-xl"><i class="fas fa-arrow-right"></i></button>
+    </div>
+  </div>  <script>
+    let currentTab = 'questions';
+    let previewPDF = null;
+    let currentPage = 1;
+    let totalPages = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      ['questions', 'tests', 'results'].forEach(section => loadSection(section));
+    });
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-section').forEach(el => el.classList.add('hidden'));
+      document.getElementById(tab).classList.remove('hidden');
+      ['questions', 'tests', 'results'].forEach(id => {
+        document.getElementById(`tab-${id}`).classList.remove('active-tab');
+      });
+      document.getElementById(`tab-${tab}`).classList.add('active-tab');
+      currentTab = tab;
+    }
+
+    function toggleForm() {
+      document.getElementById('formPopup').classList.toggle('hidden');
+    }
+
+    function submitForm() {
+      const title = document.getElementById('fileTitle').value;
+      const file = document.getElementById('fileInput').files[0];
+      const section = document.getElementById('sectionSelect').value;
+      if (!title || !file) return alert("Please complete the form.");
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const entry = {
+          title, section, fileType: file.type, content: reader.result
+        };
+        const items = JSON.parse(localStorage.getItem(section)) || [];
+        items.push(entry);
+        localStorage.setItem(section, JSON.stringify(items));
+        loadSection(section);
+        toggleForm();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function loadSection(section) {
+      const container = document.getElementById(section);
+      container.innerHTML = '';
+      const data = JSON.parse(localStorage.getItem(section)) || [];
+      if (!data.length) {
+        container.innerHTML = `<div class='text-center text-gray-400'><i class='fas fa-folder-open text-4xl'></i><p>No content found.</p></div>`;
+        return;
+      }
+      data.forEach((item, i) => {
+        const icon = item.fileType.includes('pdf') ? 'file-pdf' : item.fileType.includes('image') ? 'file-image' : item.fileType.includes('video') ? 'file-video' : 'file';
+        const card = document.createElement('div');
+        card.className = 'bg-white p-4 m-2 rounded-lg shadow-md flex items-center justify-between hover:shadow-xl cursor-pointer transition';
+        card.innerHTML = `
+          <div class='flex items-center gap-3'>
+            <i class="fas fa-${icon} text-xl"></i>
+            <span class="font-medium">${item.title}</span>
+          </div>
+          <i class="fas fa-arrow-right"></i>
+        `;
+        card.onclick = () => openPreview(item);
+        container.appendChild(card);
+      });
+    }
+
+    function openPreview(item) {
+      const preview = document.getElementById('previewPopup');
+      const content = document.getElementById('previewContent');
+      const nav = document.getElementById('pdfNavigation');
+      content.innerHTML = '';
+      nav.classList.add('hidden');
+      preview.classList.remove('hidden');
+      if (item.fileType.includes('pdf')) {
+        const canvas = document.createElement('canvas');
+        canvas.id = 'pdfCanvas';
+        content.appendChild(canvas);
+        nav.classList.remove('hidden');
+        const loadingTask = pdfjsLib.getDocument(item.content);
+        loadingTask.promise.then(pdf => {
+          previewPDF = pdf;
+          totalPages = pdf.numPages;
+          currentPage = 1;
+          renderPDFPage(currentPage);
+        });
+      } else if (item.fileType.includes('image')) {
+        const img = document.createElement('img');
+        img.src = item.content;
+        img.className = 'max-h-[90vh] w-auto rounded';
+        content.appendChild(img);
+      } else if (item.fileType.includes('video')) {
+        const vid = document.createElement('video');
+        vid.src = item.content;
+        vid.controls = true;
+        vid.className = 'max-h-[90vh] rounded';
+        content.appendChild(vid);
+      }
+    }
+
+    function renderPDFPage(num) {
+      previewPDF.getPage(num).then(page => {
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.getElementById('pdfCanvas');
+        const context = canvas.getContext('2d');
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        page.render({ canvasContext: context, viewport });
+        document.getElementById('pageInfo').textContent = `Page ${num} of ${totalPages}`;
+      });
+    }
+
+    function navigatePDF(offset) {
+      currentPage += offset;
+      if (currentPage < 1) currentPage = 1;
+      if (currentPage > totalPages) currentPage = totalPages;
+      renderPDFPage(currentPage);
+    }
+
+    function closePreview() {
+      document.getElementById('previewPopup').classList.add('hidden');
+    }
+  </script></body>
+</html>
