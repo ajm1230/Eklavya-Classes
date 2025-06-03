@@ -112,6 +112,9 @@
       renderFiles();
     };
     reader.readAsDataURL(file);
+    document.getElementById('file-title').value = '';
+document.getElementById('file-input').value = '';
+document.getElementById('file-section').value = 'questions';
   }
 
   function renderFiles() {
