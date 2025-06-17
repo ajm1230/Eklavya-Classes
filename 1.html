@@ -1,0 +1,538 @@
+
+<!DOCTYPE html><html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eklavya Classes - File Manager</title>
+    
+
+    
+    
+     <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Firebase -->
+  <!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script> <!-- ✅ This is critical -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  
+   
+        <style>
+      canvas {
+        max-width: 100%;
+        height: auto;
+      }
+      .card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+      .card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+    </style>
+    
+      <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .neumorphism {
+      background: #e0e0e0;
+      box-shadow: 10px 10px 30px #bebebe, -10px -10px 30px #ffffff;
+    }
+
+    .btn-neu {
+      background: #e0e0e0;
+      box-shadow: inset 5px 5px 10px #bebebe, inset -5px -5px 10px #ffffff;
+      transition: all 0.3s ease;
+    }
+
+    .btn-neu:hover {
+      box-shadow: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff;
+      transform: scale(1.02);
+    }
+
+    .fade {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: all 0.5s ease-in-out;
+    }
+
+    .fade-in {
+      opacity: 1 !important;
+      transform: scale(1) !important;
+    }
+  </style>
+  
+  </head>
+  <body>
+  <div  id="top" class="bg-gray-100  p-4  min-h-screen p-4 flex items-center justify-center  ">
+  <!-- Login/Access Container -->
+  <div id="container" class="w-full max-w-md neumorphism rounded-3xl p-8 text-center space-y-6">
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="fade w-full">
+      <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-4"></i>
+      <p class="text-gray-600">Processing, please wait...</p>
+    </div>
+
+    <!-- Login -->
+    <div id="login" class="hidden fade space-y-4">
+      <i class="fas fa-lock text-5xl text-blue-600"></i>
+      <h2 class="text-2xl font-bold">Admin Login</h2>
+      <p class="text-gray-600">Only authorized users can access this content.</p>
+      <button id="loginBtn" onclick="signIn()" class="btn-neu text-blue-800 font-medium px-5 py-3 rounded-full w-full flex items-center justify-center gap-2">
+        <i class="fab fa-google"></i> Sign in with Google
+      </button>
+    </div>
+
+    <!-- ✅ Success -->
+    <div id="content" class="hidden fade">
+      <i class="fas fa-check-circle text-green-600 text-4xl mb-3"></i>
+      <h2 class="text-lg font-semibold text-green-700">Access Granted</h2>
+      <p class="text-gray-600">Welcome! Preparing your dashboard...</p><br>
+      <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-4"></i>
+    </div>
+
+    <!-- Access Denied -->
+    <div id="denied" class="hidden fade space-y-4">
+      <i class="fas fa-ban text-5xl text-red-600"></i>
+      <h2 class="text-2xl font-semibold text-red-600">Access Denied</h2>
+      <p class="text-gray-600">You are not allowed to view this website content.</p>
+      <button onclick="startSignOut()" class="text-red-500 hover:text-red-700 flex items-center justify-center gap-2 mx-auto font-medium">
+        <i class="fas fa-sign-out-alt"></i> Log Out
+      </button>
+    </div>
+
+    <!-- Signing Out -->
+    <div id="signingOut" class="hidden fade space-y-4">
+      <i class="fas fa-spinner fa-spin text-blue-600 text-4xl mb-4"></i>
+      <p class="text-gray-600">Signing out...</p>
+    </div>
+  </div>
+  </div>
+ <!--end1-->
+ 
+ 
+ <div id="main" class="hidden relative  bg-gray-100 min-h-screen font-sans">
+
+   <!-- Header -->
+  <header class="bg-indigo-600 text-white p-4  flex items-center justify-between shadow-md">
+    <div class="flex items-center space-x-3">
+      <img src="https://firebasestorage.googleapis.com/v0/b/d-game-aa338.appspot.com/o/images%2F1748893081768_IMG_20250603_005437.jpg?alt=media&token=fbaa56c9-2aed-4b9e-8d48-6912a6b92146" alt="Logo" class="w-10 h-10 rounded-full"/>
+      <h1 class="text-xl font-bold">Eklavya Classes</h1>
+    </div>
+    <span class="text-sm italic">🎯 Hit The Target</span>
+    <button onclick="startSignOut()" class="text-red-500 hover:text-red-700 flex items-center justify-center gap-2 mx-auto font-medium">
+        <i class="fas fa-sign-out-alt"></i> Log Out
+      </button>
+  </header>
+    <div class="max-w-6xl mx-auto p-4">
+      <div class="flex justify-around border-b-2 border-gray-300 text-lg font-semibold">
+        <button id="tab-questions" class="px-4 py-2 border-b-4 border-transparent hover:border-blue-500" onclick="switchTab('questions')">Questions</button>
+        <button id="tab-tests" class="px-4 py-2 border-b-4 border-transparent hover:border-blue-500" onclick="switchTab('tests')">Tests</button>
+        <button id="tab-results" class="px-4 py-2 border-b-4 border-transparent hover:border-blue-500" onclick="switchTab('results')">Results</button>
+      </div><div id="cards-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6"></div>
+
+  <div id="no-data" class="text-center text-gray-500 text-xl mt-10 hidden">
+    <i class="fas fa-folder-open text-4xl mb-4"></i>
+    <p>No content found in this section</p>
+  </div>
+
+  <!-- Floating Add Button -->
+  <button onclick="toggleForm()" class="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg text-xl hover:bg-blue-700">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <!-- Add File Form -->
+  <form id="form-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  
+    <div class="bg-white rounded-lg w-full max-w-md p-6">
+      <h2 class="text-xl font-bold mb-4">Add New File</h2>
+      <input type="text" id="file-title" placeholder="Title" class="w-full p-2 border rounded mb-4" required/>
+      <input type="file" id="file-input" class="w-full p-2 border rounded mb-4" accept="image/*,video/*,application/pdf" required/>
+      <select id="file-section" class="w-full p-2 border rounded mb-4" required>
+        <option value="">Select Section</option>
+        <option value="questions">Questions</option>
+        <option value="tests">Tests</option>
+        <option value="results">Results</option>
+      </select>
+      <select id="file-class" class="w-full p-2 border rounded mb-4" required>
+        <option value="">Select Class</option>
+        <option value="Class 8TH">Class 8TH</option>
+        <option value="Class 9TH">Class 9TH</option>
+        <option value="Class 10TH">Class 10TH</option>
+      </select>
+      <div class="flex justify-between">
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Submit</button>
+        <button onclick="toggleForm()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
+      </div>
+    </div>
+    
+  </form>
+
+  <!-- File Preview Popup -->
+  <div id="preview-popup" class="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 hidden">
+    <button onclick="closePreview()" class="absolute top-6 left-6 text-white text-2xl">
+      <i class="fas fa-arrow-left"></i>
+    </button>
+    <div id="preview-content" class="w-full max-w-4xl bg-white p-4 rounded-lg overflow-auto max-h-[90vh]">
+      <!-- PDF or Image/Video will be injected here -->
+    </div>
+  </div>
+</div>
+ <!--END--> 
+  </div>
+
+
+
+  
+   <!-- Firebase Auth Logic -->
+  <script>
+    const firebaseConfig = {
+       apiKey: "AIzaSyBDyWxu0__kryrFX5cVv2zeLH--u0jwi1o",
+  authDomain: "apps1-7adcf.firebaseapp.com",
+  databaseURL: "https://apps1-7adcf-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "apps1-7adcf",
+  storageBucket: "apps1-7adcf.appspot.com",
+  messagingSenderId: "242910695142",
+  appId: "1:242910695142:web:a81098c8dcbdaaf0ddf527",
+  measurementId: "G-41SMZKKZ7H"
+    };
+
+   
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const views = ["loading", "login", "content", "denied", "signingOut"];
+
+    function showOnly(idToShow) {
+      views.forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add("hidden");
+        el.classList.remove("fade-in");
+      });
+      document.getElementById("main").classList.add("hidden"); // also hide main
+      const target = document.getElementById(idToShow);
+      target.classList.remove("hidden");
+      setTimeout(() => target.classList.add("fade-in"), 50);
+    }
+
+    function hideAllExceptMain() {
+  // Hide login container and show main
+  document.getElementById("container").classList.add("hidden");
+  document.getElementById("main").classList.remove("hidden");
+
+  // ✅ Remove classes from #top
+  const topDiv = document.getElementById("top");
+  topDiv.classList.remove("min-h-screen", "p-4");
+
+  // ✅ Scroll to top to ensure main appears from top
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+
+    auth.onAuthStateChanged(async (user) => {
+  if (user?.email) {
+    showOnly("loading");
+    try {
+      const db = firebase.database();
+      const testPath = "/Eklavya-classes/test-check";
+
+      // ✅ Corrected test value
+      await db.ref(testPath).set("test-check");
+
+      // Read it back
+      const snapshot = await db.ref(testPath).get();
+      if (snapshot.exists() && snapshot.val() === "test-check") {
+        // Delete test key
+        await db.ref(testPath).remove();
+
+        // Show success screen
+        showOnly("content");
+        setTimeout(() => hideAllExceptMain(), 2000);
+      } else {
+        showOnly("denied");
+      }
+
+    } catch (err) {
+      console.error("Read/write error:", err);
+      showOnly("denied");
+    }
+  } else {
+    showOnly("login");
+  }
+});
+
+
+
+    function signIn() {
+  const loginBtn = document.getElementById("loginBtn");
+  loginBtn.disabled = true;
+
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .then(() => {
+      // success, do nothing (auth.onAuthStateChanged will handle it)
+    })
+    .catch(err => {
+      console.error("Sign-in failed:", err.message);
+      loginBtn.disabled = false; // re-enable button if popup was closed or error occurred
+      showOnly("login");
+    });
+}
+
+
+   function startSignOut() {
+  document.getElementById("container").classList.remove("hidden");
+  document.getElementById("main").classList.add("hidden");
+  showOnly("signingOut");
+  // ✅ Remove classes from #top
+  const topDiv = document.getElementById("top");
+  topDiv.classList.add("min-h-screen", "p-4");
+
+  setTimeout(() => {
+    auth.signOut()
+      .then(() => {
+        // Reset UI
+        showOnly("login");
+        const loginBtn = document.getElementById("loginBtn");
+        if (loginBtn) loginBtn.disabled = false;
+        
+      })
+      .catch(err => {
+        alert("Sign out failed: " + err.message);
+        hideAllExceptMain();
+      });
+  }, 1500);
+}
+
+
+    
+  </script>
+  
+  
+<!-- PDF.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  let currentTab = 'questions';
+
+
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.remove('border-blue-500'));
+    document.getElementById(`tab-${tab}`).classList.add('border-blue-500');
+    renderFiles();
+  }
+
+  function toggleForm() {
+    document.getElementById('form-popup').classList.toggle('hidden');
+  }
+
+  
+
+function renderFiles() {
+  const container = document.getElementById('cards-container');
+  const noData = document.getElementById('no-data');
+  container.innerHTML = '';
+
+  const classs = document.getElementById('file-class').value;
+  const section = currentTab;
+
+  if (!classs || !section) {
+    noData.classList.remove('hidden');
+    noData.innerHTML = `<p class="text-gray-600">Please select a class and section.</p>`;
+    return;
+  }
+
+  const dbRef = firebase.database().ref(`Eklavya-classes/${classs}/${section}`);
+
+  dbRef.once('value', (snapshot) => {
+    if (!snapshot.exists()) {
+      noData.classList.remove('hidden');
+      return;
+    }
+
+    noData.classList.add('hidden');
+    const files = snapshot.val();
+    Object.keys(files).forEach((key) => {
+      const file = files[key];
+      const icon = file.type.includes('image') ? 'fa-image'
+                  : file.type.includes('video') ? 'fa-video'
+                  : file.type.includes('pdf') ? 'fa-file-pdf'
+                  : 'fa-file';
+
+      const card = document.createElement('div');
+      card.className = 'card bg-white p-4 rounded-xl shadow-lg cursor-pointer flex items-center gap-4';
+      card.innerHTML = `
+        <i class="fas ${icon} text-3xl text-red-500"></i>
+        <div class="flex-1">
+          <p class="font-bold text-lg">${file.title}</p>
+          <p class="text-sm text-gray-500">${file.class} • ${file.section}</p>
+        </div>
+        <i class="fas fa-arrow-right text-gray-500"></i>
+      `;
+      card.onclick = () => previewFile(file);
+      container.appendChild(card);
+    });
+  });
+}
+
+
+
+  
+
+
+ function previewFile(file) {
+  const popup = document.getElementById('preview-popup');
+  const content = document.getElementById('preview-content');
+  content.innerHTML = '';
+  popup.classList.remove('hidden');
+
+  if (file.type === 'application/pdf') {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    content.appendChild(canvas);
+
+    fetch(file.url)
+      .then(res => res.blob())
+      .then(blob => blob.arrayBuffer())
+      .then(arrayBuffer => {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      })
+      .then(pdf => {
+        let currentPage = 1;
+
+        function renderPage(pageNum) {
+          pdf.getPage(pageNum).then(page => {
+            const viewport = page.getViewport({ scale: 1.5 });
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            page.render({ canvasContext: ctx, viewport });
+          });
+        }
+
+        renderPage(currentPage);
+
+        const nav = document.createElement('div');
+        nav.className = 'flex justify-between items-center mt-4';
+        nav.innerHTML = `
+          <button class="text-lg text-blue-600" id="prevPage"><i class="fas fa-arrow-left"></i></button>
+          <span id="pageInfo">Page 1 of ${pdf.numPages}</span>
+          <button class="text-lg text-blue-600" id="nextPage"><i class="fas fa-arrow-right"></i></button>
+        `;
+        content.appendChild(nav);
+
+        nav.querySelector('#prevPage').onclick = () => {
+          if (currentPage > 1) {
+            currentPage--;
+            renderPage(currentPage);
+            nav.querySelector('#pageInfo').textContent = `Page ${currentPage} of ${pdf.numPages}`;
+          }
+        };
+        nav.querySelector('#nextPage').onclick = () => {
+          if (currentPage < pdf.numPages) {
+            currentPage++;
+            renderPage(currentPage);
+            nav.querySelector('#pageInfo').textContent = `Page ${currentPage} of ${pdf.numPages}`;
+          }
+        };
+      })
+      .catch(err => {
+        content.innerHTML = `<p class="text-red-500">Failed to load PDF: ${err.message}</p>`;
+      });
+  } else if (file.type.includes('image')) {
+    const img = document.createElement('img');
+    img.src = file.url;
+    img.className = 'w-full rounded';
+    content.appendChild(img);
+  } else if (file.type.includes('video')) {
+    const video = document.createElement('video');
+    video.src = file.url;
+    video.controls = true;
+    video.className = 'w-full rounded';
+    content.appendChild(video);
+  } else {
+    content.innerHTML = `<p class="text-gray-600">Unsupported file type</p>`;
+  }
+}
+
+
+  function closePreview() {
+    document.getElementById('preview-popup').classList.add('hidden');
+  }
+
+  window.onload = () => {
+    switchTab(currentTab);
+  };
+
+
+
+</script>
+
+<!-- Submit handler for file upload -->
+<script>
+document.getElementById('form-popup').addEventListener('submit', function(e) {
+  e.preventDefault(); // Stop default form behavior
+
+  const title = document.getElementById('file-title').value.trim();
+  const file = document.getElementById('file-input').files[0];
+  const section = document.getElementById('file-section').value;
+  const classs = document.getElementById('file-class').value;
+
+  if (!title || !file || !section || !classs) {
+    alert('Please fill all fields.');
+    return;
+  }
+
+  const storageRef = firebase.storage().ref(`Eklavya-classes/${classs}/${section}/${file.name}`);
+  const dbRef = firebase.database().ref(`Eklavya-classes/${classs}/${section}`);
+
+  const uploadTask = storageRef.put(file);
+
+  uploadTask.on('state_changed',
+    null,
+    (error) => {
+      alert("❌ Upload failed: " + error.message);
+    },
+    () => {
+      uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+        const fileData = {
+          title: title,
+          url: downloadURL,
+          section: section,
+          class: classs,
+          type: file.type,
+          timestamp: Date.now()
+        };
+
+        dbRef.push(fileData).then(() => {
+          alert("✅ File uploaded and saved successfully.");
+          document.getElementById('form-popup').reset();
+          toggleForm();
+          renderFiles();
+        }).catch(err => {
+          alert("❌ Failed to save file data: " + err.message);
+        });
+      });
+    }
+  );
+});
+</script>
+
+</body>
+</html>
+
+
+ 
