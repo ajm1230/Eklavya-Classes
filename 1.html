@@ -392,66 +392,18 @@ function renderFiles() {
   
 
 
- function previewFile(file) {
+function previewFile(file) {
   const popup = document.getElementById('preview-popup');
   const content = document.getElementById('preview-content');
   content.innerHTML = '';
   popup.classList.remove('hidden');
 
   if (file.type === 'application/pdf') {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    content.appendChild(canvas);
-
-    fetch(file.url)
-      .then(res => res.blob())
-      .then(blob => blob.arrayBuffer())
-      .then(arrayBuffer => {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-        return pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      })
-      .then(pdf => {
-        let currentPage = 1;
-
-        function renderPage(pageNum) {
-          pdf.getPage(pageNum).then(page => {
-            const viewport = page.getViewport({ scale: 1.5 });
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            page.render({ canvasContext: ctx, viewport });
-          });
-        }
-
-        renderPage(currentPage);
-
-        const nav = document.createElement('div');
-        nav.className = 'flex justify-between items-center mt-4';
-        nav.innerHTML = `
-          <button class="text-lg text-blue-600" id="prevPage"><i class="fas fa-arrow-left"></i></button>
-          <span id="pageInfo">Page 1 of ${pdf.numPages}</span>
-          <button class="text-lg text-blue-600" id="nextPage"><i class="fas fa-arrow-right"></i></button>
-        `;
-        content.appendChild(nav);
-
-        nav.querySelector('#prevPage').onclick = () => {
-          if (currentPage > 1) {
-            currentPage--;
-            renderPage(currentPage);
-            nav.querySelector('#pageInfo').textContent = `Page ${currentPage} of ${pdf.numPages}`;
-          }
-        };
-        nav.querySelector('#nextPage').onclick = () => {
-          if (currentPage < pdf.numPages) {
-            currentPage++;
-            renderPage(currentPage);
-            nav.querySelector('#pageInfo').textContent = `Page ${currentPage} of ${pdf.numPages}`;
-          }
-        };
-      })
-      .catch(err => {
-        content.innerHTML = `<p class="text-red-500">Failed to load PDF: ${err.message}</p>`;
-      });
+    const iframe = document.createElement('iframe');
+    iframe.src = file.url;
+    iframe.className = 'w-full h-[90vh] rounded';
+    iframe.setAttribute('allowfullscreen', 'true');
+    content.appendChild(iframe);
   } else if (file.type.includes('image')) {
     const img = document.createElement('img');
     img.src = file.url;
@@ -467,6 +419,7 @@ function renderFiles() {
     content.innerHTML = `<p class="text-gray-600">Unsupported file type</p>`;
   }
 }
+
 
 
   function closePreview() {
