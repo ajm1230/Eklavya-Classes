@@ -1,12 +1,23 @@
-<!DOCTYPE html><html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eklavya Classes - File Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://kit.fontawesome.com/76e4f92c6a.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        <style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Account - Eklavya Classes</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script> <!-- ✅ This is critical -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+   <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+  
+  <style>
       canvas {
         max-width: 100%;
         height: auto;
@@ -19,17 +30,125 @@
         box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
       }
     </style>
-  </head>
-  <body>
-  <div  class="bg-gray-100 min-h-screen font-sans" id="main">
-   <!-- Header -->
-  <header class="bg-indigo-600 text-white p-4 flex items-center justify-between shadow-md">
-    <div class="flex items-center space-x-3">
-      <img src="https://firebasestorage.googleapis.com/v0/b/d-game-aa338.appspot.com/o/images%2F1748893081768_IMG_20250603_005437.jpg?alt=media&token=fbaa56c9-2aed-4b9e-8d48-6912a6b92146" alt="Logo" class="w-10 h-10 rounded-full"/>
+    
+      <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+   
+
+    .btn-neu {
+      background: #e0e0e0;
+      box-shadow: inset 5px 5px 10px #bebebe, inset -5px -5px 10px #ffffff;
+      transition: all 0.3s ease;
+    }
+
+    .btn-neu:hover {
+      box-shadow: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff;
+      transform: scale(1.02);
+    }
+
+    .fade {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: all 0.5s ease-in-out;
+    }
+
+    .fade-in {
+      opacity: 1 !important;
+      transform: scale(1) !important;
+    }
+  </style>
+  
+</head>
+<body class="bg-gray-50 ">
+
+ <!-- Header (same as other pages) -->
+<header class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white py-4 shadow-md">
+  <div class="container mx-auto px-4 flex justify-between items-center">
+    
+    <!-- Left section: Logo + Title -->
+    <div class="flex items-center space-x-2">
+      <img src="https://aicdn.picsart.com/6f66aed3-1ef2-4552-9592-e17803855175.png" alt="Logo" class="w-10 h-10 rounded-full" />
       <h1 class="text-xl font-bold">Eklavya Classes</h1>
     </div>
-    <span class="text-sm italic">🎯 Hit The Target</span>
-  </header>
+
+    <!-- Right section: Logout Button -->
+    <button id="logout-btn" class="hidden logout-btn text-red-600 hover:text-red-800 flex items-center gap-2 pr-[3px]">
+      <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+    </button>
+
+  </div>
+</header>
+
+<main>
+<div  >
+  <!-- Auth Section -->
+  <div id="auth-section" class="text-center  max-w-xl mx-auto mt-8 p-6 bg-white rounded-xl shadow">
+    <h2 class="text-2xl font-semibold mb-4">Login to Continue</h2>
+    <button id="google-login" class="bg-red-500 text-white px-5 py-2 rounded hover:bg-red-600 flex items-center justify-center gap-2 w-full">
+      <span>Sign in with Google</span>
+      <span id="login-spinner" class="hidden animate-spin">
+        <i class="fas fa-spinner"></i>
+      </span>
+    </button>
+  </div>
+
+  <!-- Student Info Form -->
+  <div id="info-section" class="hidden max-w-xl mx-auto mt-8 p-6 bg-white rounded-xl shadow">
+     <div class="flex justify-between items-center">
+    <h2 class="text-2xl font-semibold mb-4">Student Details</h2>
+     <button id="logout-btn"  class="logout-btn text-red-600 hover:text-red-800 flex items-center gap-2">
+        <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+      </button>
+     </div>
+    <form id="info-form" class="space-y-4">
+      <input type="text" id="student-name" placeholder="Student Name" class="w-full p-2 border rounded" required />
+      <select id="student-class" class="w-full p-2 border rounded" required>
+        <option value="">Select Class</option>
+        <option value="8">Class 8</option>
+        <option value="9">Class 9</option>
+        <option value="10">Class 10</option>
+        <option value="11">Class 11</option>
+        <option value="12">Class 12</option>
+      </select>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">
+        Submit
+      </button>
+      </form>
+     </div>
+
+
+</div>
+
+ <!-- Course Section -->
+  <div id="fullcourse" class="hidden relative ">
+
+   <div id="profile-loader" class="absolute inset-0 bg-white bg-opacity-70 flex items-center justify-center z-10 hidden">
+      <div class="animate-spin text-purple-600 text-3xl"><i class="fas fa-spinner"></i></div>
+    </div>
+    <!--main-->
+    <div class=" ">
+ 
+     <div id="main" class="relative  bg-gray-100 min-h-screen font-sans">
+
+   
+ 
+
+<!-- Class Filter Dropdown (aligned) -->
+<div class="flex items-center justify-center mt-4 mb-2 space-x-2">
+  <label for="file-class" class="text-sm font-medium text-gray-700">Select Class:</label>
+  <select id="class-select" onchange="renderFiles()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="">Choose Class</option>
+    <option value="Class 8TH">Class 8TH</option>
+    <option value="Class 9TH">Class 9TH</option>
+    <option value="Class 10TH">Class 10TH</option>
+  </select>
+</div>
+
+
+
     <div class="max-w-6xl mx-auto p-4">
       <div class="flex justify-around border-b-2 border-gray-300 text-lg font-semibold">
         <button id="tab-questions" class="px-4 py-2 border-b-4 border-transparent hover:border-blue-500" onclick="switchTab('questions')">Questions</button>
@@ -42,33 +161,13 @@
     <p>No content found in this section</p>
   </div>
 
-  <!-- Floating Add Button -->
-  <button onclick="toggleForm()" class="fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg text-xl hover:bg-blue-700">
-    <i class="fas fa-plus"></i>
-  </button>
+ 
 
-  <!-- Add File Form -->
-  <div id="form-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-lg w-full max-w-md p-6">
-      <h2 class="text-xl font-bold mb-4">Add New File</h2>
-      <input type="text" id="file-title" placeholder="Title" class="w-full p-2 border rounded mb-4" />
-      <input type="file" id="file-input" class="w-full p-2 border rounded mb-4" accept="image/*,video/*,application/pdf" />
-      <select id="file-section" class="w-full p-2 border rounded mb-4">
-        <option value="questions">Questions</option>
-        <option value="tests">Tests</option>
-        <option value="results">Results</option>
-      </select>
-      <div class="flex justify-between">
-        <button onclick="addFile()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Submit</button>
-        <button onclick="toggleForm()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Cancel</button>
-      </div>
-    </div>
-  </div>
-
+ 
   <!-- File Preview Popup -->
   <div id="preview-popup" class="fixed inset-0 bg-black bg-opacity-90 flex flex-col items-center justify-center z-50 hidden">
-    <button onclick="closePreview()" class="absolute top-6 left-6 text-white text-2xl">
-      <i class="fas fa-arrow-left"></i>
+    <button onclick="closePreview()" class="absolute top-6 left-6  text-2xl">
+      <i class="fa-solid fa-arrow-left" style="color: #74C0FC;"></i>
     </button>
     <div id="preview-content" class="w-full max-w-4xl bg-white p-4 rounded-lg overflow-auto max-h-[90vh]">
       <!-- PDF or Image/Video will be injected here -->
@@ -77,11 +176,140 @@
 </div>
  <!--END--> 
   </div>
+
+
+    </div>
+
+ </div>
+ 
+</main>
+
+  <!-- Bottom Navigation (if used) -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white 0border-t border-gray-200 shadow-inner z-50">
+    <div class="flex justify-around text-sm text-gray-600">
+      <a href="/Eklavya-Classes/" class="w-full py-3 flex flex-col items-center hover:text-purple-700">
+        <i class="fas fa-home text-xl mb-1"></i><span class="text-xs">Home</span>
+      </a>
+      <a href="/Eklavya-Classes/course.html" class="w-full py-3 flex flex-col items-center hover:text-purple-700">
+        <i class="fas fa-book text-xl mb-1"></i><span class="text-xs">Courses</span>
+      </a>
+      <a href="/Eklavya-Classes/myaccount.html" class="w-full py-3 flex flex-col items-center text-purple-700 font-semibold">
+        <i class="fas fa-user text-xl mb-1"></i><span class="text-xs">My Account</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- Font Awesome -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBDyWxu0__kryrFX5cVv2zeLH--u0jwi1o",
+    authDomain: "apps1-7adcf.firebaseapp.com",
+    databaseURL: "https://apps1-7adcf-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "apps1-7adcf",
+    storageBucket: "apps1-7adcf.appspot.com",
+    messagingSenderId: "242910695142",
+    appId: "1:242910695142:web:a81098c8dcbdaaf0ddf527",
+    measurementId: "G-41SMZKKZ7H"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  const loginBtn = document.getElementById("google-login");
+  const loginSpinner = document.getElementById("login-spinner");
+  const authSection = document.getElementById("auth-section");
+  const infoSection = document.getElementById("info-section");
+  const FullCourse = document.getElementById("fullcourse");
+  const profileLoader = document.getElementById("profile-loader");
+  const infoForm = document.getElementById("info-form");
+
+  const studentName = document.getElementById("student-name");
+  const studentClass = document.getElementById("student-class");
+  const editName = document.getElementById("edit-name");
+  const editClass = document.getElementById("edit-class");
+  const updateBtn = document.getElementById("update-profile");
+  const logoutBtn = document.getElementById("logout-btn");
+
+  loginBtn.onclick = () => {
+    loginSpinner.classList.remove("hidden");
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider).catch(() => {
+      loginSpinner.classList.add("hidden");
+    });
+  };
+
+ auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
+
+  authSection.classList.add("hidden");
+  profileLoader.classList.remove("hidden");
+
+  const uid = user.uid;
+  const ref = db.ref(`Eklavya-classes2/users/${uid}`);
+  const snapshot = await ref.get();
+  
+  document.querySelectorAll(".logout-btn").forEach(btn => {
+  btn.onclick = () => {
+    auth.signOut().then(() => location.reload());
+  };
+});
+
+
+ 
+  if (snapshot.exists()) {
+    showCourse(user, snapshot.val());
+    logoutBtn.classList.remove("hidden")
+  } else {
+    // Show only info section for new users
+    profileLoader.classList.add("hidden");
+    infoSection.classList.remove("hidden");
+    document.getElementById("info-logout").classList.remove("hidden");
+  }
+
+
+});
+
+
+
+
+  infoForm.onsubmit = (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    const data = {
+      name: studentName.value.trim(),
+      class: studentClass.value,
+      email: user.email
+    };
+    db.ref(`Eklavya-classes2/users/${user.uid}`).set(data).then(() => {
+      showCourse(user);
+    });
+  };
+
+function showCourse(user, data) {
+  authSection.classList.add("hidden");
+  infoSection.classList.add("hidden");
+  FullCourse.classList.remove("hidden");
+
+  const loader = document.getElementById("profile-loader");
+  loader.classList.remove("hidden");
+
+  setTimeout(() => {
+    loader.classList.add("hidden");
+ 
+ } , 700); // Slight delay to simulate profile loading
+}
+  
+  
+</script>
+
 <!-- PDF.js -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   let currentTab = 'questions';
-  let files = JSON.parse(localStorage.getItem('eklavyafiles')) || [];
+
 
   function switchTab(tab) {
     currentTab = tab;
@@ -94,124 +322,102 @@
     document.getElementById('form-popup').classList.toggle('hidden');
   }
 
-  function addFile() {
-    const title = document.getElementById('file-title').value;
-    const file = document.getElementById('file-input').files[0];
-    const section = document.getElementById('file-section').value;
-    if (!title || !file) return alert('Please fill all fields.');
+  
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const newFile = {
-        title,
-        section,
-        type: file.type,
-        data: reader.result
-      };
-      files.push(newFile);
-      localStorage.setItem('eklavyafiles', JSON.stringify(files));
-      toggleForm();
-      renderFiles();
-    };
-    reader.readAsDataURL(file);
-    document.getElementById('file-title').value = '';
-document.getElementById('file-input').value = '';
-document.getElementById('file-section').value = 'questions';
+function renderFiles() {
+  const container = document.getElementById('cards-container');
+  const noData = document.getElementById('no-data');
+  container.innerHTML = '';
+
+  const classs = document.getElementById('class-select').value;
+  const section = currentTab;
+
+  // ❌ If class is not selected
+  if (!classs) {
+    noData.classList.remove('hidden');
+    noData.innerHTML = `
+      <i class="fas fa-exclamation-circle text-yellow-500 text-4xl mb-4"></i>
+      <p class="text-gray-600">Please select a class to view files.</p>
+    `;
+    return;
   }
 
-  function renderFiles() {
-    const container = document.getElementById('cards-container');
-    const noData = document.getElementById('no-data');
-    container.innerHTML = '';
-    const filtered = files.filter(f => f.section === currentTab);
-    if (filtered.length === 0) {
+  // ✅ Class selected, fetch files
+  const dbRef = firebase.database().ref(`Eklavya-classes/${classs}/${section}`);
+  dbRef.once('value', (snapshot) => {
+    if (!snapshot.exists()) {
       noData.classList.remove('hidden');
-    } else {
-      noData.classList.add('hidden');
+      noData.innerHTML = `
+        <i class="fas fa-folder-open text-4xl mb-4"></i>
+        <p>No content found in this section</p>
+      `;
+      return;
     }
 
-    filtered.forEach((file, i) => {
-      const icon = file.type.includes('image') ? 'fa-image' : file.type.includes('video') ? 'fa-video' : 'fa-file-pdf';
+    noData.classList.add('hidden');
+    const files = snapshot.val();
+    Object.keys(files).forEach((key) => {
+      const file = files[key];
+      const icon = file.type.includes('image') ? 'fa-image'
+                  : file.type.includes('video') ? 'fa-video'
+                  : file.type.includes('pdf') ? 'fa-file-pdf'
+                  : 'fa-file';
+
       const card = document.createElement('div');
       card.className = 'card bg-white p-4 rounded-xl shadow-lg cursor-pointer flex items-center gap-4';
       card.innerHTML = `
-        <i class="fas ${icon} text-3xl" style="color: #ff0000;"></i>
+        <i class="fas ${icon} text-3xl text-red-500"></i>
         <div class="flex-1">
           <p class="font-bold text-lg">${file.title}</p>
+          <p class="text-sm text-gray-500">${file.class} • ${file.section}</p>
         </div>
         <i class="fas fa-arrow-right text-gray-500"></i>
       `;
       card.onclick = () => previewFile(file);
       container.appendChild(card);
     });
+  });
+}
+
+
+  
+
+
+function previewFile(file) {
+  const popup = document.getElementById('preview-popup');
+  const content = document.getElementById('preview-content');
+  content.innerHTML = '';
+  popup.classList.remove('hidden');
+
+  if (file.type === 'application/pdf') {
+    const iframe = document.createElement('iframe');
+    iframe.src = `https://drive.google.com/viewerng/viewer?embedded=true&url=${encodeURIComponent(file.url)}`;
+    iframe.className = 'w-full h-[90vh] rounded shadow';
+    iframe.setAttribute('allowfullscreen', 'true');
+    content.appendChild(iframe);
   }
 
-  function previewFile(file) {
-    const popup = document.getElementById('preview-popup');
-    const content = document.getElementById('preview-content');
-    content.innerHTML = '';
-    popup.classList.remove('hidden');
-
-    if (file.type === 'application/pdf') {
-      const canvas = document.createElement('canvas');
-      content.appendChild(canvas);
-      const ctx = canvas.getContext('2d');
-      const pdfData = atob(file.data.split(',')[1]);
-
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-      const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-      loadingTask.promise.then(pdf => {
-        let currentPage = 1;
-
-        function renderPage(pageNum) {
-          pdf.getPage(pageNum).then(page => {
-            const viewport = page.getViewport({ scale: 1.5 });
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            page.render({ canvasContext: ctx, viewport });
-          });
-        }
-
-        renderPage(currentPage);
-        const nav = document.createElement('div');
-        nav.className = 'flex justify-between items-center mt-4';
-        nav.innerHTML = `
-          <button class="text-lg text-blue-600" id="prevPage"><i class="fas fa-arrow-left"></i></button>
-          <span id="pageInfo">Page 1 of ${pdf.numPages}</span>
-          <button class="text-lg text-blue-600" id="nextPage"><i class="fas fa-arrow-right"></i></button>
-        `;
-        content.appendChild(nav);
-
-        nav.querySelector('#prevPage').onclick = () => {
-          if (currentPage > 1) {
-            currentPage--;
-            renderPage(currentPage);
-            nav.querySelector('#pageInfo').textContent = `Page ${currentPage} of ${pdf.numPages}`;
-          }
-        };
-        nav.querySelector('#nextPage').onclick = () => {
-          if (currentPage < pdf.numPages) {
-            currentPage++;
-            renderPage(currentPage);
-            nav.querySelector('#pageInfo').textContent = `Page ${currentPage} of ${pdf.numPages}`;
-          }
-        };
-      });
-    } else if (file.type.includes('image')) {
-      const img = document.createElement('img');
-      img.src = file.data;
-      img.className = 'w-full rounded';
-      content.appendChild(img);
-    } else if (file.type.includes('video')) {
-      const video = document.createElement('video');
-      video.src = file.data;
-      video.controls = true;
-      video.className = 'w-full rounded';
-      content.appendChild(video);
-    }
+  else if (file.type.includes('image')) {
+    const img = document.createElement('img');
+    img.src = file.url;
+    img.className = 'w-full rounded';
+    content.appendChild(img);
   }
+
+  else if (file.type.includes('video')) {
+    const video = document.createElement('video');
+    video.src = file.url;
+    video.controls = true;
+    video.className = 'w-full rounded';
+    content.appendChild(video);
+  }
+
+  else {
+    content.innerHTML = `<p class="text-gray-600">Unsupported file type</p>`;
+  }
+}
+
+
 
   function closePreview() {
     document.getElementById('preview-popup').classList.add('hidden');
@@ -220,7 +426,13 @@ document.getElementById('file-section').value = 'questions';
   window.onload = () => {
     switchTab(currentTab);
   };
+
+
+
 </script>
 
-  </body>
-        </html>
+
+
+
+</body>
+</html>
