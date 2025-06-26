@@ -72,11 +72,12 @@
       </button>
     </div>
     <p class="mb-2">Email: <span id="display-email"></span></p>
+  <form id="edit-form" class="space-y-4">
     <label class="block mt-4">Student Name:
-      <input type="text" id="edit-name" class="w-full p-2 border rounded mt-1" />
+      <input type="text" id="edit-name" class="w-full p-2 border rounded mt-1" required/>
     </label>
     <label class="block mt-4">Class:
-      <select id="edit-class" class="w-full p-2 border rounded mt-1">
+      <select id="edit-class" class="w-full p-2 border rounded mt-1" required>
         <option value="">Select Class</option>
         <option value="8">Class 8</option>
         <option value="9">Class 9</option>
@@ -85,9 +86,10 @@
         <option value="12">Class 12</option>
       </select>
     </label>
-    <button id="update-profile" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 hidden">
+    <button type="submit" id="update-profile" class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 hidden">
       Update
     </button>
+    </form>
   </div>
 </main>
 
@@ -215,19 +217,24 @@
       updateBtn.classList.remove("hidden");
     };
 
-    updateBtn.onclick = () => {
-      const updatedData = {
-        name: editName.value,
-        class: editClass.value,
-        email: user.email
-      };
-      db.ref(`Eklavya-classes2/users/${user.uid}`).update(updatedData).then(() => {
-        alert("Profile updated");
-        updateBtn.classList.add("hidden");
-        showProfile(user, updatedData); // Refresh
-      });
-    };
-   
+    const editForm = document.getElementById("edit-form");
+
+editForm.onsubmit = (e) => {
+  e.preventDefault(); // Prevent actual page reload
+
+  const updatedData = {
+    name: editName.value,
+    class: editClass.value,
+    email: auth.currentUser.email
+  };
+
+  db.ref(`Eklavya-classes2/users/${auth.currentUser.uid}`).update(updatedData).then(() => {
+    alert("Profile updated");
+    updateBtn.classList.add("hidden");
+    showProfile(auth.currentUser, updatedData); // Refresh profile
+  });
+};
+
   
   }, 700); // Slight delay to simulate profile loading
 }
