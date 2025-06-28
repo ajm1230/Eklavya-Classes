@@ -138,13 +138,9 @@
 
 <!-- Class Filter Dropdown (aligned) -->
 <div class="flex items-center justify-center mt-4 mb-2 space-x-2">
-  <label for="file-class" class="text-sm font-medium text-gray-700">Select Class:</label>
-  <select id="class-select" onchange="renderFiles()" class="border border-gray-300 rounded-lg px-4 py-2 text-sm shadow focus:outline-none focus:ring-2 focus:ring-blue-500">
-    <option value="">Choose Class</option>
-    <option value="Class 8TH">Class 8TH</option>
-    <option value="Class 9TH">Class 9TH</option>
-    <option value="Class 10TH">Class 10TH</option>
-  </select>
+  
+  <p id="class-display" ></p>
+
 </div>
 
 
@@ -228,9 +224,7 @@
 
   const studentName = document.getElementById("student-name");
   const studentClass = document.getElementById("student-class");
-  const editName = document.getElementById("edit-name");
-  const editClass = document.getElementById("edit-class");
-  const updateBtn = document.getElementById("update-profile");
+ 
   const logoutBtn = document.getElementById("logout-btn");
 
   loginBtn.onclick = () => {
@@ -260,6 +254,20 @@
 
  
   if (snapshot.exists()) {
+  const userData = snapshot.val();
+  
+  // ✅ Fetch class value from userData
+    const userClass = userData.class;
+    console.log("Fetched class from DB:", userClass);
+
+    // you can now use `userClass` anywhere:
+    // e.g., display on page:
+    document.getElementById("class-display").textContent = `Class ${userClass}TH`;
+    
+// Manually trigger renderFiles() right after
+renderFiles();
+    
+    
     showCourse(user, snapshot.val());
     logoutBtn.classList.remove("hidden")
   } else {
@@ -309,7 +317,7 @@ function showCourse(user, data) {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
   let currentTab = 'questions';
-
+ 
 
   function switchTab(tab) {
     currentTab = tab;
@@ -329,7 +337,9 @@ function renderFiles() {
   const noData = document.getElementById('no-data');
   container.innerHTML = '';
 
-  const classs = document.getElementById('class-select').value;
+  const classs = document.getElementById('class-display').textContent;
+console.log("Fetched class:", classs);
+
   const section = currentTab;
 
   // ❌ If class is not selected
