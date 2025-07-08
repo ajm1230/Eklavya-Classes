@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Progress Report Generator</title>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen p-6">
+  <div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4 text-center">📊 Progress Report Generator</h1>
+
+    <div class="mb-4">
+      <label class="block mb-2 font-semibold">Upload at least 2 CSV files:</label>
+      <input type="file" id="csvFiles" multiple accept=".csv" class="block w-full border border-gray-300 rounded p-2">
+    </div>
+
+    <button onclick="processFiles()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mb-4">
+      Process Uploaded Files
+    </button>
+
+    <div class="mb-4">
+      <label class="block mb-2 font-semibold">Select Student:</label>
+      <select id="studentSelect" class="w-full border border-gray-300 rounded p-2">
+        <option value="">-- Please process files first --</option>
+      </select>
+    </div>
+
+    <button onclick="generateReport()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
+      Show Report
+    </button>
+
+    <div id="reportSection" class="mt-6 hidden">
+      <h2 class="text-xl font-bold mb-4">📈 Report for <span id="studentName"></span></h2>
+      <canvas id="lineChart" class="mb-6"></canvas>
+      <canvas id="barChart" class="mb-6"></canvas>
+      <div class="overflow-auto">
+        <table class="min-w-full border border-gray-200">
+          <thead class="bg-gray-100">
+            <tr id="tableHeader"></tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+let allData = []; // store all CSV data
+
+function processFiles(){
+  allData = [];
+  const files = Array.from(document.getElementById('csvFiles').files);
+  if(files.length < 2){
+    alert("Please upload at least 2 CSV files.");
+    return;
+  }
+
+  let loaded = 0;
+  files.forEach(file => {
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        allData = allData.concat(results.data);
+        loaded++;
+        if(loaded === files.length){
+          populateStudentDropdown();
+          alert("Files processed successfully!");
+        }
+      }
+    });
+  });
+}
+
+function populateStudentDropdown(){
+  const names = [...new Set(allData.map(row => row["Student Name"] || row["Name"]).filter(Boolean))];
+  const select = document.getElementById('studentSelect');
+  select.innerHTML = '<option value="">-- Select Student --</option>';
+  names.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    opt.textContent = name;
+    select.appendChild(opt);
+  });
+}
+
+function generateReport(){
+  const selectedName = document.getElementById('studentSelect').value;
+  if(!selectedName){
+    alert("Please select a student.");
+    return;
+  }
+
+  document.getElementById('studentName').textContent = selectedName;
+
+  // filter data by selected student
+  const studentData = allData.filter(row => (row["Student Name"] || row["Name"]) === selectedName);
+
+  if(studentData.length === 0){
+    alert("No data found for selected student.");
+    return;
+  }
+
+  const labels = studentData.map((row, idx) => row.Topic || `Test ${idx+1}`);
+  const marks = studentData.map(row => parseInt(row["Marks Obtained"] || row["Marks"]));
+
+  drawLineChart(labels, marks);
+  drawBarChart(labels, marks);
+  drawTable(studentData);
+
+  document.getElementById('reportSection').classList.remove('hidden');
+}
+
+let lineChartInstance, barChartInstance;
+
+function drawLineChart(labels, data){
+  const ctx = document.getElementById('lineChart').getContext('2d');
+  if(lineChartInstance) lineChartInstance.destroy();
+  lineChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Marks',
+        data,
+        borderColor: 'rgb(37, 99, 235)',
+        backgroundColor: 'rgba(37, 99, 235, 0.2)',
+        fill: true,
+      }]
+    }
+  });
+}
+
+function drawBarChart(labels, data){
+  const ctx = document.getElementById('barChart').getContext('2d');
+  if(barChartInstance) barChartInstance.destroy();
+  barChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Marks',
+        data,
+        backgroundColor: 'rgb(34, 197, 94)',
+      }]
+    }
+  });
+}
+
+function drawTable(data){
+  const header = document.getElementById('tableHeader');
+  const body = document.getElementById('tableBody');
+
+  const columns = Object.keys(data[0]);
+  header.innerHTML = columns.map(col => `<th class="border p-2">${col}</th>`).join('');
+
+  body.innerHTML = data.map(row => {
+    return `<tr>${columns.map(k => `<td class="border p-2">${row[k]}</td>`).join('')}</tr>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
