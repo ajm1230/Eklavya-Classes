@@ -1,0 +1,1 @@
+{\n  \"compilerOptions\": {\n    \"types\": [\n      \"node\"\n    ],\n    \"lib\": [\n      \"esnext\",\n      \"dom\"\n    ]\n  }\n}
